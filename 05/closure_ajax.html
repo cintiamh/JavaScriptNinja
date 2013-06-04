@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Suite</title>
+    <script type="text/javascript" src="../lib/jquery-1.10.1.min.js"></script>
+</head>
+<body>
+
+<div id="testSubject"></div>
+
+<button type="button" id="testButton">Go!</button>
+
+<script type="text/javascript">
+    jQuery('#testButton').click(function() {
+        var elem$ = jQuery("#testSubject");
+        elem$.html('Loading...');
+
+        jQuery.ajax({
+            url: "closure_ajax.html",
+            success: function(html) {
+                console.log("Have access to elem$: " + elem$);
+                elem$.html(html);
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

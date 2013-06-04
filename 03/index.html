@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Suite</title>
+    <script>
+        (function() {
+            var queue = [], paused = false, results;
+            this.test = function(name, fn) {
+                queue.push(function() {
+                    results = document.getElementById("results");
+                    results = assert(true, name).appendChild(document.createElement("ul"));
+                    fn();
+                });
+                runTest();
+            };
+            this.pause = function() {
+                paused = true;
+            };
+            this.resume = function() {
+                paused = false;
+                setTimeout(runTest, 1);
+            };
+            function runTest() {
+                if (!paused && queue.length) {
+                    queue.shift()();
+                    if (!paused) {
+                        resume();
+                    }
+                }
+            }
+            this.assert = function assert(value, desc) {
+                var li = document.createElement("li");
+                li.className = value ? "pass" : "fail";
+                li.appendChild(document.createTextNode(desc));
+                results.appendChild(li)
+                if (!value) {
+                    li.parentNode.parentNode.className = "fail";
+                }
+                return li;
+            };
+        })();
+
+        window.onload = function() {
+
+            test("Async Test #1", function() {
+                assert(useless(function() { return text; }) === text, "The useless function works! " + text);
+            });
+
+            test("Declarations", function() {
+                assert(typeof window.isNimble === "function", "isNimble() defined");
+                assert(isNimble.name === "isNimble", "isNimble() has a name");
+
+                assert(typeof window.canFly === "function", "canFly() defined");
+                assert(canFly.name === "", "canFly() has no name");
+
+                assert(typeof window.isDeadly === "function", "isDeadly() defined");
+
+                outer();
+
+                assert(window.inner === undefined, "inner() still not in global scope");
+
+                assert(window.wieldsSword.name === "swingsSword", "wieldsSword's real name is swingsSword");
+            });
+
+            test("Invocations", function(){
+                assert(creep() === window, "Creeping in the window");
+                assert(sneak() === window, "Sneaking in the window");
+                assert(ninja1.skulk() === ninja1, "The 1st ninja is skulking");
+                assert(ninja2.skulk() === ninja2, "The 2nd ninja is skulking");
+
+                assert(ninja3.skulk() === ninja3, "The 3rd ninja is skulking");
+                assert(ninja4.skulk() === ninja4, "The 4th ninja is skulking");
+
+                assert(ninja5.result === 10, "juggled via apply");
+                assert(ninja6.result === 26, "juggled via call");
+
+                forEach(weapons, function(index) {
+                    assert(this == weapons [index], "Got the expected value of " + weapons [index]);
+                });
+            });
+        };
+
+        function useless(callback) { return callback(); }
+        var text = 'Domo arigato!';
+
+        // Declarations
+        function isNimble() { return true; }
+
+        var canFly = function() { return true; }
+
+        window.isDeadly = function() { return true; }
+
+        function outer() {
+            assert(typeof inner === "function", "inner() in scope before declaration");
+            function inner() {}
+            assert(typeof inner === "function", "inner() in scope after declaration");
+            assert(window.inner === undefined, "inner() not in global scope");
+        }
+
+        window.wieldsSword = function swingsSword() { return true; };
+
+        // Invocation as a method
+        function creep(){ return this; }
+        var sneak = creep;
+        var ninja1 = {
+            skulk: creep
+        };
+        var ninja2 = {
+            skulk: creep
+        };
+
+        // Invocation as a constructor
+        function Ninja() {
+            this.skulk = function() { return this; };
+        }
+        var ninja3 = new Ninja();
+        var ninja4 = new Ninja();
+
+        function juggle(){
+            var result = 0;
+            for (var n = 0; n < arguments.length; n++) {
+                result += arguments[n];
+            }
+            this.result = result;
+        }
+        var ninja5 = {};
+        var ninja6 = {};
+        juggle.apply(ninja5, [1, 2, 3, 4]);
+        juggle.call(ninja6, 5, 6, 7, 8);
+
+        function forEach(list, callback) {
+            for (var n = 0; n < list.length; n++) {
+                callback.call(list[n], n);
+            }
+        }
+        var weapons = ['shuriken', 'katana', 'nunchucks'];
+
+    </script>
+    <style>
+        #results li.pass { color: green; }
+        #results li.fail { color: red; }
+    </style>
+</head>
+<body>
+    <ul id="results"></ul>
+</body>
+</html>

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Suite</title>
+    <script>
+        (function() {
+            var queue = [], paused = false, results;
+            this.test = function(name, fn) {
+                queue.push(function() {
+                    results = document.getElementById("results");
+                    results = assert(true, name).appendChild(document.createElement("ul"));
+                    fn();
+                });
+                runTest();
+            };
+            this.pause = function() {
+                paused = true;
+            };
+            this.resume = function() {
+                paused = false;
+                setTimeout(runTest, 1);
+            };
+            function runTest() {
+                if (!paused && queue.length) {
+                    queue.shift()();
+                    if (!paused) {
+                        resume();
+                    }
+                }
+            }
+            this.assert = function assert(value, desc) {
+                var li = document.createElement("li");
+                li.className = value ? "pass" : "fail";
+                li.appendChild(document.createTextNode(desc));
+                results.appendChild(li)
+                if (!value) {
+                    li.parentNode.parentNode.className = "fail";
+                }
+                return li;
+            };
+        })();
+
+        window.onload = function() {
+
+            test("Anonymous functions", function() {
+                assert(true, 'power!');
+                ninja.shout();
+            });
+
+            test("Recursion", function() {
+                assert(isPalindrome(""), "An empty string is a palindrome");
+                assert(isPalindrome("a"), "One letter string is a palindrome");
+                assert(isPalindrome("ala"), "Ala is a palindrome");
+                assert(!isPalindrome("alabama"), "Alabama is not a palindrome");
+
+                assert(chirp(3) == "chirp-chirp-chirp", "Calling the named function comes naturally.");
+
+                assert(ninja2.chirp(3) == "chirp-chirp-chirp", "An object property isn't too confusing, either.");
+
+                //assert(ninja4.chirp(3) == "chirp-chirp-chirp", "Work as we would expect it to!");
+                //assert(samurai2.chirp(3) == "chirp-chirp-chirp", "The method correctly calls itself.");
+
+                try {
+                    assert(samurai.chirp(3) == "chirp-chirp-chirp", "Is this going to work?");
+                }
+                catch(e) {
+                    assert(false, "Uh, this isn't good! Where'd ninja.chirp go?");
+                }
+
+                var ninja5 = {
+                    chirp: function(n) {
+                        return n > 1 ? arguments.callee(n - 1) + "-chirp" : "chirp";
+                    }
+                };
+                assert(ninja5.chirp(3) == "chirp-chirp-chirp", "arguments.callee is the function itself");
+
+                var store = {
+                    nextId: 1,
+                    cache: {},
+                    add: function(fn) {
+                        if (!fn.id) {
+                            fn.id = store.nextId++;
+                            return !!(store.cache[fn.id] = fn);
+                        }
+                    }
+                };
+                function ninja6(){}
+                assert(store.add(ninja6), "Function was safely added.");
+                assert(!store.add(ninja6), "But it was only added once.");
+
+                function isPrime(value) {
+                    if (!isPrime.answers) isPrime.answers = {};
+                    if (isPrime.answers[value] != null) {
+                        return isPrime.answers[value];
+                    }
+                    var prime = value != 1; // 1 can never be prime
+                    for (var i = 2; i < value; i++) {
+                        if (value % i == 0) {
+                            prime = false;
+                            break;
+                        }
+                    }
+                    return isPrime.answers[value] = prime;
+                }
+                assert(isPrime(5), "5 is prime!");
+                assert(isPrime.answers[5], "The answer was cached!");
+
+                assert(elems.length == 1 && elems[0].nodeType, "Verify that we have an element in our stash");
+                assert(elems.length == 2 && elems[1].nodeType, "Verify the other insertion");
+
+                function smallest(array) {
+                    return Math.min.apply(Math, array);
+                }
+                function largest(array) {
+                    return Math.max.apply(Math, array);
+                }
+                assert(smallest([0, 1, 2, 3]) == 0, "Located the smallest value.");
+                assert(largest([0, 1, 2, 3]) == 3, "Located the largest value.");
+
+                function merge(root) {
+                    for (var i = 1; i < arguments.length; i++) {
+                        for (var key in arguments[i]) {
+                            root[key] = arguments[i][key];
+                        }
+                    }
+                    return root;
+                }
+                var merged = merge(
+                    {name: "Batou"},
+                    {city: "Niihama"}
+                );
+                assert(merged.name == "Batou", "The original name is intact.");
+                assert(merged.city == "Niihama", "And the city has been copied over.");
+
+                function multiMax(multi) {
+                    return multi * Math.max.apply(Math, Array.prototype.slice.call(arguments, 1));
+                }
+                assert(multiMax(3, 1, 2, 3) == 9, "3 * 3 = 9 (First arg, by largest)");
+
+                var ninja7 = {};
+                addMethod(ninja7, 'whatever', function(){ /* do something */ });
+                addMethod(ninja7, 'whatever', function(a){ /* do something else */ });
+                addMethod(ninja7, 'whatever', function(a, b){ /* yet something else */ });
+                function addMethod(object, name, fn) {
+                    var old = object[name];
+                    object[name] = function() {
+                        if (fn.length == arguments.length)
+                            return fn.apply(this, arguments)
+                        else if (typeof old == 'function')
+                            return old.apply(this, arguments);
+                    }
+                }
+
+                var ninjas = {
+                    values: ["Dean Edwards", "Sam Stephenson", "Alex Russell"]
+                };
+                addMethod(ninjas, "find", function(){
+                    return this.values;
+                });
+                addMethod(ninjas, "find", function(name){
+                    var ret = [];
+                    for (var i = 0; i < this.values.length; i++)
+                        if (this.values[i].indexOf(name) == 0)
+                            ret.push(this.values[i]);
+                    return ret;
+                });
+                addMethod(ninjas, "find", function(first, last){
+                    var ret = [];
+                    for (var i = 0; i < this.values.length; i++)
+                        if (this.values[i] == (first + " " + last))
+                            ret.push(this.values[i]);
+                    return ret;
+                });
+                assert(ninjas.find().length == 3, "Found all ninjas");
+                assert(ninjas.find("Sam").length == 1, "Found ninja by first name");
+                assert(ninjas.find("Dean", "Edwards").length == 1, "Found ninja by first and last name");
+                assert(ninjas.find("Alex", "Russel", "Jr") == null, "Found nothing");
+
+                function ninja8(){}
+                assert(typeof ninja8 == "function", "Functions have a type of function");
+            });
+        };
+
+        var ninja = {
+            shout: function(){
+                assert(true, "Ninja");
+            }
+        };
+        setTimeout(function(){assert(true, 'Forever!');}, 500);
+
+        function isPalindrome(text) {
+            if (text.length <= 1) return true;
+            if (text.charAt(0) != text.charAt(text.length - 1)) return false;
+            return isPalindrome(text.substr(1, text.length - 2));
+        }
+
+        function chirp(n) {
+            return n > 1 ? chirp(n - 1) + "-chirp" : "chirp";
+        }
+
+        var ninja2 = {
+            chirp: function(n) {
+                return n > 1 ? ninja2.chirp(n - 1) + "-chirp" : "chirp";
+            }
+        };
+
+        var ninja3 = {
+            chirp: function(n) {
+                return n > 1 ? this.chirp(n - 1) + "-chirp" : "chirp";
+            }
+        };
+        var samurai = { chirp: ninja3.chirp };
+        ninja3 = {};
+
+        var ninja4 = {
+            chirp: function signal(n) {
+                return n > 1 ? signal(n - 1) + "-chirp" : "chirp";
+            }
+        };
+        var samurai2 = { chirp: ninja4.chirp };
+        ninja4 = {};
+
+
+    </script>
+    <style>
+        #results li.pass { color: green; }
+        #results li.fail { color: red; }
+    </style>
+</head>
+<body>
+    <input id="first">
+    <input id="second">
+
+    <ul id="results"></ul>
+
+<script type="text/javascript">
+    var elems = {
+        length: 0,
+        add: function(elem) {
+            Array.prototype.push.call(this, elem);
+        },
+        gather: function(id) {
+            this.add(document.getElementById(id));
+        }
+    };
+    elems.gather("first");
+    //assert(elems.length == 1 && elems[0].nodeType, "Verify that we have an element in our stash");
+    elems.gather("second");
+    //assert(elems.length == 2 && elemes[1].nodeType, "Verify the other insertion");
+</script>
+</body>
+</html>
