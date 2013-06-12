@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+<script type="text/javascript">
+    String.prototype.csv = String.prototype.split.partial(/,\s*/);
+    var results = ("Mugan, Jin, Fuu").csv();
+    console.log(results);
+</script>
+</body>
+</html>
