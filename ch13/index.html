@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+
+<script>
+    
+    // Checks for the DOM Model
+    if (document.addEventListener) {
+        // Creates a bind function using DOM Model
+        this.addEvent = function(elem, type, fn) {
+            elem.addEventListener(type, fn, false);
+            return fn;
+        };
+        // Creates an unbind function using DOM Model
+        this.removeEvent = function(elem, type, fn) {
+            elem.removeEventListener(type, fn, false);
+            
+        };
+    }
+    // Checks for IE model
+    else if (document.attachEvent) {
+        this.addEvent = function(elem, type, fn) {
+            var bound = function() {
+                return fn.apply(elem, arguments);
+            };
+            elem.attachEvent('on' + type, bound);
+            return bound;
+        }; 
+        this.removeEvent = function(elem, type, fn) {
+            elem.detachEvent('on' + type, fn);
+        }
+    }
+
+    function reverse(str) {
+        // Your code here
+        if (str.length >= 1) {
+            var name = '';
+            var arr = str.split('');
+            var last = arr.pop();
+            var newstr = arr.join('');
+            name = last + reverse(newstr);
+            return name;
+        }
+    }
+    
+    var test = reverse('Cintia');
+    console.log(test, test.length);
+    
+</script>
+</body>
+</html>
